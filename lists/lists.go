@@ -28,3 +28,11 @@ var ModernAdjectivesList []string = parseWordFile(modernAdjectivesFile)
 //go:embed modern/nouns.txt
 var modernNounsFile string
 var ModernNounsList []string = parseWordFile(modernNounsFile)
+
+//go:embed animal/adjectives.txt
+var animalAdjectivesFile string
+var AnimalAdjectivesList []string = parseWordFile(animalAdjectivesFile)
+
+//go:embed animal/nouns.txt
+var animalNounsFile string
+var AnimalNounsList []string = parseWordFile(animalNounsFile)

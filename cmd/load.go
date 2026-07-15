@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/layerxinc/nameit/lists"
+	"github.com/tenxprotocols/nameit/lists"
 )
 
 // loadWordLists loads adjectives and nouns based on provided flags
@@ -27,9 +27,12 @@ func loadWordLists() ([]string, []string) {
 		}
 	} else {
 		// Load default adjectives based on mode
-		if mode == "modern" {
+		switch mode {
+		case "modern":
 			adjectives = lists.ModernAdjectivesList
-		} else {
+		case "animal":
+			adjectives = lists.AnimalAdjectivesList
+		default:
 			adjectives = lists.HerokuAdjectivesList
 		}
 	}
@@ -47,9 +50,12 @@ func loadWordLists() ([]string, []string) {
 		}
 	} else {
 		// Load default nouns based on mode
-		if mode == "modern" {
+		switch mode {
+		case "modern":
 			nouns = lists.ModernNounsList
-		} else {
+		case "animal":
+			nouns = lists.AnimalNounsList
+		default:
 			nouns = lists.HerokuNounsList
 		}
 	}

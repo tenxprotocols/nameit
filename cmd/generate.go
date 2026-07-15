@@ -3,22 +3,17 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
+	"os"
 	"strings"
-	"time"
 
 	"gopkg.in/yaml.v3"
-
-	_ "embed"
 )
 
 func generateName(adjectives []string, nouns []string, prefix string, separator string, appendRandom bool, randomChars string, randomLength int) string {
-	rngSource := rand.NewSource(time.Now().UnixNano())
-	rng := rand.New(rngSource)
-
 	// Select a random adjective and noun
-	adj := adjectives[rng.Intn(len(adjectives))]
-	noun := nouns[rng.Intn(len(nouns))]
+	adj := adjectives[rand.IntN(len(adjectives))]
+	noun := nouns[rand.IntN(len(nouns))]
 
 	// Combine with the configured separator
 	name := adj + separator + noun
@@ -33,7 +28,7 @@ func generateName(adjectives []string, nouns []string, prefix string, separator 
 		// Generate a random token
 		token := make([]byte, randomLength)
 		for i := range token {
-			token[i] = randomChars[rng.Intn(len(randomChars))]
+			token[i] = randomChars[rand.IntN(len(randomChars))]
 		}
 		name += separator + string(token)
 	}
@@ -56,7 +51,7 @@ func outputNames(names []string) {
 		// Output as JSON array
 		jsonData, err := json.MarshalIndent(names, "", "  ")
 		if err != nil {
-			fmt.Println("Error generating JSON:", err)
+			fmt.Fprintln(os.Stderr, "Error generating JSON:", err)
 			return
 		}
 		fmt.Println(string(jsonData))
@@ -65,7 +60,7 @@ func outputNames(names []string) {
 		// Output as YAML array
 		yamlData, err := yaml.Marshal(names)
 		if err != nil {
-			fmt.Println("Error generating YAML:", err)
+			fmt.Fprintln(os.Stderr, "Error generating YAML:", err)
 			return
 		}
 		fmt.Print(string(yamlData))
@@ -78,7 +73,7 @@ func outputNames(names []string) {
 
 	default:
 		// Default to text format if unknown format specified
-		fmt.Println("Unknown output format. Using text format:")
+		fmt.Fprintln(os.Stderr, "Unknown output format. Using text format:")
 		for _, name := range names {
 			fmt.Println(name)
 		}
