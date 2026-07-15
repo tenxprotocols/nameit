@@ -1,4 +1,4 @@
-module github.com/layerxinc/nameit
+module github.com/tenxprotocols/nameit
 
 go 1.23.4
 

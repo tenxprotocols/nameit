@@ -14,7 +14,7 @@ var (
 	cfgFile string
 
 	// Name generation options
-	mode           string   // Generation style: "modern" or "heroku"
+	mode           string   // Generation style: "modern", "heroku", or "animal"
 	adjectivesList []string // Custom list of adjectives
 	nounsList      []string // Custom list of nouns
 	adjectivesFile string   // Path to file with custom adjectives
@@ -41,24 +41,34 @@ Output formats include plain text (one per line), JSON array, or YAML array.
 Examples:
   # Generate a single Heroku-style name
   nameit --mode=heroku
-  
+
+  # Generate an animal-themed name
+  nameit --mode=animal
+
   # Generate 5 modern-style names with custom separator
   nameit --mode=modern --count=5 --separator="_"
-  
+
   # Generate names using custom word lists
   nameit --adjectives-list=red,blue,green --nouns-list=apple,banana,orange
-  
+
   # Generate names using words from files
   nameit --adjectives-file=./my-adjectives.txt --nouns-file=./my-nouns.txt
-  
+
   # Output as JSON
   nameit --count=10 --output=json`,
 	// Run the main command logic
 	Run: func(cmd *cobra.Command, args []string) {
+		applyConfig()
 		adjectives, nouns := loadWordLists() // Load adjectives and nouns based on provided flags
 		names := generateNames(adjectives, nouns, prefix, separator, appendRandom, randomChars, randomLength, count)
 		outputNames(names)
 	},
+}
+
+// SetVersionInfo sets the version string shown by `nameit --version`.
+// Called from main with values injected at build time.
+func SetVersionInfo(version, commit, date string) {
+	rootCmd.Version = fmt.Sprintf("%s (commit %s, built %s)", version, commit, date)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -77,7 +87,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nameit.yaml)")
 
 	// Mode selection
-	rootCmd.Flags().StringVar(&mode, "mode", "modern", "Generation mode (\"modern\" or \"heroku\")")
+	rootCmd.Flags().StringVar(&mode, "mode", "modern", "Generation mode (\"modern\", \"heroku\", or \"animal\")")
 
 	// Generation options
 	rootCmd.Flags().IntVar(&count, "count", 1, "Number of names to generate")
@@ -103,7 +113,7 @@ func init() {
 	rootCmd.MarkFlagsMutuallyExclusive("nouns-list", "nouns-file")
 
 	// Bind flags to viper for configuration file support
-	viper.BindPFlag("mode", rootCmd.Flags().Lookup("count"))
+	viper.BindPFlag("mode", rootCmd.Flags().Lookup("mode"))
 
 	viper.BindPFlag("count", rootCmd.Flags().Lookup("count"))
 	viper.BindPFlag("output", rootCmd.Flags().Lookup("output"))
@@ -117,6 +127,24 @@ func init() {
 	viper.BindPFlag("nouns-list", rootCmd.Flags().Lookup("nouns-list"))
 	viper.BindPFlag("adjectives-file", rootCmd.Flags().Lookup("adjectives-file"))
 	viper.BindPFlag("nouns-file", rootCmd.Flags().Lookup("nouns-file"))
+}
+
+// applyConfig resolves each option through viper so values from the config
+// file and environment take effect, while flags set on the command line keep
+// precedence (viper returns the flag value when the flag was changed).
+func applyConfig() {
+	mode = viper.GetString("mode")
+	count = viper.GetInt("count")
+	outputFormat = viper.GetString("output")
+	prefix = viper.GetString("prefix")
+	separator = viper.GetString("separator")
+	appendRandom = viper.GetBool("append-random")
+	randomChars = viper.GetString("random-chars")
+	randomLength = viper.GetInt("random-length")
+	adjectivesList = viper.GetStringSlice("adjectives-list")
+	nounsList = viper.GetStringSlice("nouns-list")
+	adjectivesFile = viper.GetString("adjectives-file")
+	nounsFile = viper.GetString("nouns-file")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -135,6 +163,7 @@ func initConfig() {
 		viper.SetConfigName(".nameit")
 	}
 
+	viper.SetEnvPrefix("NAMEIT")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
